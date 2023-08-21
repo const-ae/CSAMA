@@ -5,6 +5,8 @@ CODEX-Akoya / spatial data
 Something on DL?
 More systematic introduction into the creation of modern research outputs (Rmarkdown vignettes, optinally with interactive widgets in them (plotly); Shiny)
 
+Use ChatGPT et al. for /in lieu of gene set enrichment analysis
+
 What to drop?
 
 Perhaps the "Annotation resources" lecture can be made more concrete by adding a concrete dataset integration / "metaanalysis" running example?
