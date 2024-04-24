@@ -19,6 +19,8 @@ http://www-huber.embl.de/users/msmith/csama2019/materials/
 
 <p float="left">
   <img src="https://www.bioconductor.org/images/logo/jpg/bioconductor_logo_rgb.jpg" width="300" align="bottom"/>
+</p>
+<p float="left">
   <img src="https://csama2023.bioconductor.eu/img/clients/UNIPD_logo.png" width="300" /> 
 </p>
 
