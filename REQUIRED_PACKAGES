@@ -49,15 +49,15 @@ OSCA.advanced
 OSCA.multisample
 OSCA.workflows
 ade4
-airway           
-Biobase            
-dplyr           
-factoextra          
-GGally  
-ggplot2             
-Hiiragi2013 
+airway
+Biobase
+dplyr
+factoextra
+GGally
+ggplot2
+Hiiragi2013
 MASS
-pheatmap   
+pheatmap
 phyloseq
 SummarizedExperiment
 
@@ -137,6 +137,7 @@ rmarkdown
 dplyr
 ggplot2
 tximport
+iSEEde
 
 ## Katharina Imkeller (KI)
 
