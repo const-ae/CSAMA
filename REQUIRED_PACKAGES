@@ -79,16 +79,17 @@ IHW
 ## Julia Philipp (JP)
 
 ## Johannes Rainer (JR)
-RforMassSpectrometry/Spectra
-RforMassSpectrometry/MsCoreUtils
+Spectra
+MsCoreUtils
 MsExperiment
 MetaboCoreUtils
 MetaboAnnotation
+msdata
 png
-sneumann/xcms
+xcms
 jorainer/SpectraTutorials
-jorainer/MetaboAnnotationTutorials
-jorainer/xcmsTutorials
+pheatmap
+SummarizedExperiment
 
 ## Davide Risso (DR)
 DropletTestFiles
