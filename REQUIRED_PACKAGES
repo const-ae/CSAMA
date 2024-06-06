@@ -188,15 +188,18 @@ VariantAnnotation
 
 ## Mike Love (ML)
 dplyr
-tidyr
-randomNames
-plyranges
-TxDb.Hsapiens.UCSC.hg19.knownGene
 tibble
+tidyr
+plyranges
+tidybulk
+tidySummarizedExperiment
+nullranges
+fluentGenomics
+randomNames
+TxDb.Hsapiens.UCSC.hg19.knownGene
 org.Hs.eg.db
 AnnotationHub
 GenomeInfoDb
-nullranges
 ggplot2
 ggridges
 plotgardener
@@ -205,9 +208,7 @@ tximeta
 org.Mm.eg.db
 SummarizedExperiment
 AnnotationDbi
-tidySummarizedExperiment
 stringr
-tidybulk
 DESeq2
 ggrepel
 fission
