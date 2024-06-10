@@ -60,6 +60,26 @@ MASS
 pheatmap
 phyloseq
 SummarizedExperiment
+ccb-hms/scDiagnostics
+SingleCellExperiment
+methods
+isotree
+RColorBrewer
+ranger
+Hotelling
+rlang
+AUCell
+BiocStyle
+knitr
+Matrix
+rmarkdown
+scran
+scRNAseq
+SingleR
+celldex
+scuttle
+scater
+testthat
 
 ## Wolfgang Huber (WH)
 knitr
@@ -139,6 +159,9 @@ dplyr
 ggplot2
 tximport
 iSEEde
+quarto
+patchwork
+cowplot
 
 ## Katharina Imkeller (KI)
 
