@@ -237,3 +237,24 @@ ggrepel
 fission
 purrr
 glmnet
+
+
+## Constantin Ahlmann-Eltze (for Wolfgang)
+lemur
+tidyverse
+muscData
+scater
+SingleCellExperiment
+MatrixGenerics
+transformGamPoi
+glmGamPoi
+ggrepel
+Seurat
+irlba
+uwot
+harmony
+scales
+tibble
+
+
+
