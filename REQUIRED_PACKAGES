@@ -174,7 +174,7 @@ cowplot
 
 ## Katharina Imkeller (KI)
 
-## Lori Kern (LK)
+## Maria Doyle (MD)
 airway
 AnnotationDbi
 AnnotationHub
@@ -205,6 +205,7 @@ IRanges
 KEGGREST
 org.Hs.eg.db
 Organism.dplyr
+pwalign
 readr
 rtracklayer
 Rsamtools

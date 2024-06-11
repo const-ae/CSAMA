@@ -98,7 +98,9 @@ library(GenomicRanges)
 Example: _Biostrings_ for DNA sequences
 
 ```{r Biostrings, message=FALSE}
-library(Biostrings)                     # Biological sequences
+library(Biostrings)  
+library(pwalign)
+# Biological sequences
 data(phiX174Phage)                      # sample data, see ?phiX174Phage
 phiX174Phage
 m <- consensusMatrix(phiX174Phage)[1:4,] # nucl. x position counts
