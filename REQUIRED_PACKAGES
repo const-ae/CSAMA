@@ -126,6 +126,15 @@ igraph
 SingleR
 celldex
 pheatmap
+network
+sna
+intergraph
+SpatialExperiment
+STexampleData
+ggspavis
+nnSVG
+BayesSpace
+SPOTlight
 
 ## Charlotte Soneson (CS)
 mikelove/airway2

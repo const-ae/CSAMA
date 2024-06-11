@@ -1,11 +1,11 @@
 ---
 title: "Single-cell RNA-seq workflow"
-subtitle: "CSAMA 2023 Version"
+subtitle: "CSAMA 2024 Version"
 author:
     - name: Davide Risso
       affiliation: 
         - Department of Statistical Sciences, University of Padova, Padova, Italy
-date: "13 June 2023"
+date: "11 June 2024"
 bibliography: biblio.bib
 output: BiocStyle::html_document
 ---
@@ -586,9 +586,8 @@ There are many additional analyses that are useful for single-cell RNA-seq data.
 - Pseudotime inference
 - Multi-sample differential expression
 
-While we do not have time to explore these analyses in detail here, these are covered in [Chapter 10 of the Advanced OSCA book](http://bioconductor.org/books/3.17/OSCA.advanced/trajectory-analysis.html) and in the [Multi-sample OSCA book](http://bioconductor.org/books/3.17/OSCA.multisample/), respectively.
-
-I encourage you to explore these resources by yourselves.
+Please, consider taking the following self-paced course to explore more advanced topics:
+https://ccb-hms.github.io/osca-workbench/
 
 # Session information
 
