@@ -159,12 +159,11 @@ plotSpotQC(spe, plot_type = "spot",
 ```
 The discarded spots are all on the edges of the tissue. It seems plausible that something has gone wrong with the cell segmentation on the edges of the images, so it makes sense to remove these spots.
 
-Since only a small number of spots are flagged as low quality, we can remove them.
+Since only a small number of spots are flagged as low quality, we can leave them in the object and simply flag them as low-quality.
 
 ```{r filter-spots}
 table(high.cellcount | high.mito)
-to_remove <- which(high.cellcount | high.mito)
-spe <- spe[,-to_remove]
+low_quality <- which(high.cellcount | high.mito)
 ```
 
 As for quality control, normalization can be borrowed from the single-cell literature. Published work use simple methods, such as the library size normalization. We use here this simple strategy, but more advanced methods can be used (see the single-cell workflow).
@@ -243,17 +242,149 @@ It is natural to think that spots that are physically close in tissue's space wi
 
 This is the main idea behind `BayesSpace` [@zhao2021spatial], which uses a Bayesian Pott's model to cluster spots.
 
+Here, we specify seven clusters becaue we know from the ground truth labels that we should expect seven areas in the tissue. The `BayesSpace` package vignette describes a more general worklfow to use when the number of clusters is unknown.
+
+For computational reasons we run this analysis with only 1000 iterations, but in real analyses at least 10,000 are needed.
+
 ```{r bayespace}
 library(BayesSpace)
+
+spe_bay <- as(spe, "SingleCellExperiment")
+spe_bay$row <- spe_bay$array_row
+spe_bay$col <- spe_bay$array_col
+
+set.seed(1650)
+
+spe_bay <- spatialPreprocess(spe_bay, platform="Visium", 
+                              n.PCs=10, n.HVGs=1000)
+
+spe_bay <- spatialCluster(spe_bay, q=7, platform="Visium", d=10,
+                           init.method="mclust", model="t", gamma=2,
+                           nrep=1000, burn.in=100,
+                           save.chain=TRUE)
+```
+We can now visualize the spatial clusters.
+
+```{r bay-plot}
+clusterPlot(spe_bay)
 ```
 
 # Spot deconvolution
 
 We have seen that each spot can contain up to 10 cells in this dataset. Some methods have been developed to deconvolve the gene expression of each spot into different cell types that may make up the spot's composition. Here, we look at one such algorithm, called SPOTlight [@elosua2021spotlight], but many others exist.
 
-```{r spotlight}
+```{r prepare_anno}
 library(SPOTlight)
+library(scRNAseq)
 
+sce <- fetchDataset("zhong-prefrontal-2018", version = "2023-12-22")
+colData(sce)
+table(sce$cell_types)
+```
+
+We want to select only informative genes from the reference, and subsample the cells to have a balanced representation of all the cell types.
+
+```{r preprocess-anno}
+library(scran)
+# filter low-quality cells
+sce <- addPerCellQC(sce)
+sce <- sce[, sce$sum > 1000]
+
+# normalization
+sce <- logNormCounts(sce)
+
+# hvg selection
+dec <- modelGeneVar(sce)
+hvg <- getTopHVGs(dec, n = 3000)
+
+# marker genes
+colLabels(sce) <- colData(sce)$cell_types
+mgs <- scoreMarkers(sce)
+
+# keep only genes informative for cell type identity 
+mgs_fil <- lapply(names(mgs), function(i) {
+    x <- mgs[[i]]
+    # Filter and keep relevant marker genes, those with AUC > 0.8
+    x <- x[x$mean.AUC > 0.8, ]
+    # Sort the genes from highest to lowest weight
+    x <- x[order(x$mean.AUC, decreasing = TRUE), ]
+    # Add gene and cluster id to the dataframe
+    x$gene <- rownames(x)
+    x$cluster <- i
+    data.frame(x)
+})
+mgs_df <- do.call(rbind, mgs_fil)
+head(mgs_df)
+```
+
+For computational reason, we select 5 cells per cell type, but in real analyses 100 cells per cell types may be used.
+
+```{r cell-sel}
+# split cell indices by identity
+idx <- split(seq(ncol(sce)), sce$cell_types)
+
+# downsample to at most 5 per identity & subset
+set.seed(1035)
+n_cells <- 5
+cs_keep <- lapply(idx, function(i) {
+    n <- length(i)
+    if (n < n_cells)
+        n_cells <- n
+    sample(i, n_cells)
+})
+sce <- sce[, unlist(cs_keep)]
+```
+
+We are now ready to run the spot deconvolution.
+
+```{r spotlight}
+# the reference uses gene symbol as row names
+rownames(spe) <- rowData(spe)$gene_name
+
+res <- SPOTlight(
+    x = sce,
+    y = spe,
+    groups = as.character(sce$cell_types),
+    mgs = mgs_df,
+    hvg = hvg,
+    weight_id = "mean.AUC",
+    group_id = "cluster",
+    gene_id = "gene")
+
+# extract results
+mod <- res$NMF
+```
+
+We can visualize the results in several ways, but the most popular is the so-called "scatter pie", which represents the proportion of cell types in each spot as a pie chart.
+
+```{r vis-spot}
+# SPOTlight needs unique sample_id names
+imgData(spe)$sample_id[1] <- "sample_151673_lr"
+
+mat <- res$mat
+ct <- colnames(mat)
+mat[mat < 0.1] <- 0
+
+# Define color palette
+# (here we use 'paletteMartin' from the 'colorBlindness' package)
+paletteMartin <- c(
+    "#000000", "#004949", "#009292", "#ff6db6", "#ffb6db", 
+    "#490092", "#006ddb", "#b66dff", "#6db6ff", "#b6dbff", 
+    "#920000", "#924900", "#db6d00", "#24ff24", "#ffff6d")
+
+pal <- colorRampPalette(paletteMartin)(length(ct))
+names(pal) <- ct
+
+plotSpatialScatterpie(
+    x = spe,
+    y = mat,
+    cell_types = colnames(mat),
+    img = FALSE,
+    scatterpie_alpha = 1,
+    pie_scale = 0.4) +
+    scale_fill_manual(
+        values = pal,
+        breaks = names(pal))
 ```
 
 # Session information

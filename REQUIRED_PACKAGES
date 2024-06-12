@@ -135,6 +135,13 @@ ggspavis
 nnSVG
 BayesSpace
 SPOTlight
+scRNAseq
+ggcorrplot
+scatterpie
+arrow
+SpatialFeatureExperiment
+Voyager
+SFEData
 
 ## Charlotte Soneson (CS)
 mikelove/airway2
