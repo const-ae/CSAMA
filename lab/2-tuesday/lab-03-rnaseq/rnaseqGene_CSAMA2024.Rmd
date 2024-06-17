@@ -217,10 +217,11 @@ The `rowData` contains the information about the corresponding gene for each tra
 * Counts are added up
 * TPMs are added up
 * Transcript lengths are added up after weighting by the respective transcript TPMs
+* The ranges are chosen based on the most abundant isoform (new since 2023)
 
 ```{r summarizetogene}
 ## Summarize quantifications on the gene level
-sg <- tximeta::summarizeToGene(st)
+sg <- tximeta::summarizeToGene(st, assignRanges="abundant")
 sg
 ```
 
