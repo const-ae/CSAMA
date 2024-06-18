@@ -20,11 +20,11 @@ knitr::opts_chunk$set(
 ```
 
 Original Authors: Martin Morgan, Sonali Arora, Lori Shepherd<br />
-Presenting Author: [Lori Shepherd][]</br >
-Date: 12-16 June, 2023</br >
+Presenting Author: [Maria Doyle][]</br >
+Date: 23-28 June, 2024</br >
 Back: [Monday labs](lab-1-intro-to-r-bioc.html)
 
-[Lori Shepherd]: mailto: Lori.Shepherd@RoswellPark.org
+[Maria Doyle]: mailto: maria.doyle@ul.ie
 
 **Objective**: Gain confidence working with 'tidy' R commands and data
   structures.
