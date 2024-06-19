@@ -61,6 +61,8 @@ We log-transform the data to account for the heteroskedasticity of the counts, p
 sce <- scater::logNormCounts(sce)
 hvg <- order(MatrixGenerics::rowVars(logcounts(sce)), decreasing = TRUE)
 sce <- sce[hvg[1:500], ]
+# _Note_: in case you get an error about `"function 'as_cholmod_sparse' not provided by package 'Matrix'"`, 
+# please reinstall the `irlba` package from source (`install.packages("irlba", type = "source")`)!
 sce <- scater::runPCA(sce, ncomponents = 50)
 sce <- scater::runUMAP(sce, dimred = "PCA")
 ```
@@ -72,7 +74,7 @@ The [transformGamPoi](https://bioconductor.org/packages/release/bioc/vignettes/t
 
 ```{r}
 #| label: sctransform_alternative
-#| eval: !expr (! params$skip_execution && ! params$skip_slow_chunks)
+#| eval: !expr (! params$skip_execution)
 assay(sce, "pearson_residuals") <- transformGamPoi::residual_transform(sce, residual = "pearson", on_disk = FALSE)
 ```
 :::
@@ -533,7 +535,7 @@ The output is a `data.frame` with one row for each gene. The `neighborhood` colu
 ```{r, paged.print=FALSE}
 #| label: find-neighborhood-lemur
 #| eval: !expr (! params$skip_execution)
-nei <- lemur::find_de_neighborhoods(fit, group_by = vars(ind))
+nei <- lemur::find_de_neighborhoods(fit, group_by = vars(ind, stim))
 head(nei)
 ```
 
