@@ -22,6 +22,12 @@ params:
 To start, we load the `tidyverse` and `SingleCellExperiment` packages:
 
 ```{r}
+#| label: initialize
+#| echo: FALSE
+knitr::opts_chunk$set(cache = TRUE, autodep = TRUE)
+```
+
+```{r}
 #| label: load_packages
 #| output: false
 #| eval: !expr (! params$skip_execution)
@@ -82,11 +88,11 @@ assay(sce, "pearson_residuals") = transformGamPoi::residual_transform(sce, resid
 :::
 
 ::: {.callout-note collapse="true"}
-## Question: What is the problem with using very few components for PCA? Is there also a problem with using too many?
+## Question: What is the problem with using too few components for PCA? Is there also a problem with using too many?
 
 Too few dimensions for PCA mean that it cannot capture enough of the relevant variation in the data. This leads to a loss of subtle differences between cell states.
 
-Too many dimensions for PCA can also pose a problem. PCA smoothes out the Poisson noise uncorrelated that is orthogonal to the biological signal. If too many PCA components are included, the additional dimensions capture the noise that can obscure relevant differences. For more details see Fig. 2d in @ahlmann-eltze2023.
+Too many dimensions for PCA can also pose a problem. PCA smoothes out the sampling noise in the data. If too many PCA components are included, the smoothing is too weak, and the additional dimensions capture noise that can obscure biologically relevant differences. For more details see Fig. 2d in @ahlmann-eltze2023.
 :::
 
 ::: {.callout-note collapse="true"}
@@ -100,7 +106,7 @@ The scater package also provides a `runTSNE` function
 sce = scater::runTSNE(sce, dimred = "PCA")
 ```
 
-On the one hand, tSNE and UMAP are defacto standards for visualizing the cell states in single cell data analysis. On the other hand, they are often criticized for failing to represent global structure and distorting differences in the data (just look at twitter). A number of alternatives have been suggested:
+On the one hand, tSNE and UMAP are de facto standards for visualizing the cell states in single cell data analysis. On the other hand, they are often criticized for failing to represent global structure and distorting differences in the data. A number of alternatives have been suggested:
 
 - Force directed layout of the $k$ nearest neighbor (kNN) graph ([igraph](https://igraph.org/r/doc/layout_with_fr.html)),
 - [PHATE](https://github.com/KrishnaswamyLab/PHATE)
@@ -110,9 +116,9 @@ On the one hand, tSNE and UMAP are defacto standards for visualizing the cell st
 
 
 
-In this tutorial, we will use `ggplot2` to visualize the data. This is often more verbose than calling an existing function (e.g., `scater::plotReducedDim(sce, "UMAP", color_by = "stim")`) but has the advantage that the plots are easier to customize.
+In this tutorial, we use `ggplot2` to visualize the data. This is often more verbose than calling an existing function (e.g., `scater::plotReducedDim(sce, "UMAP", color_by = "stim")`) but has the advantage that the plots are easier to customize.
 
-In the UMAP, the cells separate by treatment status (`"stim"`) and cell type (`"cell"`). The goal of this tutorial is to understand how different models adjust for the known treatment status and integrate the data into a shared embedding.
+In the below two UMAP plots, the cells separate by treatment status (`stim`), as well as by annotated cell type (`cell`). One goal of this tutorial is to understand how different approaches use these covariates to integrate the data into a shared embedding space or representation.
 
 ```{r}
 #| label: fig-kang-umap
@@ -120,9 +126,7 @@ In the UMAP, the cells separate by treatment status (`"stim"`) and cell type (`"
 #| eval: !expr (! params$skip_execution)
 as_tibble(colData(sce)) |>
   mutate(umap = reducedDim(sce, "UMAP")) |>
-  ggplot(aes(x = umap[,1], y = umap[,2])) +
-    geom_point(aes(color = stim), size = 0.3) +
-    coord_fixed()
+  ggplot(aes(x = umap[,1], y = umap[,2])) + geom_point(aes(color = stim), size = 0.3) + coord_fixed()
 ```
 
 ::: {.callout-note collapse="true"}
@@ -135,9 +139,7 @@ One solution could be to use a `for` loop and filter the data for each patient, 
 #| eval: !expr (! params$skip_execution)
 as_tibble(colData(sce)) |>
   mutate(umap = reducedDim(sce, "UMAP")) |>
-  ggplot(aes(x = umap[,1], y = umap[,2])) +
-    geom_point(aes(color = stim), size = 0.3) +
-    coord_fixed() +
+  ggplot(aes(x = umap[,1], y = umap[,2])) + geom_point(aes(color = stim), size = 0.3) + coord_fixed() +
     facet_wrap(vars(ind))
 ```
 :::
@@ -179,7 +181,7 @@ seur_obj = Seurat::FindVariableFeatures(seur_obj, selection.method = "vst", nfea
 seur_obj = seur_obj[Seurat::VariableFeatures(object = seur_obj),]
 seur_obj = Seurat::ScaleData(seur_obj)
 seur_obj = Seurat::RunPCA(seur_obj, verbose = FALSE)
-seur_obj =Seurat::RunUMAP(seur_obj, dims = 1:10)
+seur_obj = Seurat::RunUMAP(seur_obj, dims = 1:10)
 ```
 
 ```{r}
@@ -192,24 +194,24 @@ Seurat::DimPlot(seur_obj, reduction = "umap", group.by = "stim")
 
 # Data integration
 
-@fig-kang-umap shows that the data separates by the treatment status. For many downstream analyses, it would be good to know how the cells from the stimulated condition are related to the cells from the control condition. For example for cell type assignment, we might want to annotate both conditions together and ignore the effect of the treatment. This process is called **integration**.
+@fig-kang-umap shows that the cell embedding locations separate by the treatment status. For many downstream analyses, it would be good to know how the cells from the stimulated condition are related to the cells from the control condition. For example for cell type assignment, we might want to annotate both conditions together, irrespective of treatment. This aspiration is called **integration**.
 
-The goal is a low-dimensional embedding of the cells where the treatment status does not affect the embedding and all residual variance comes from different cell states. @fig-integrated_picture shows a successfully integrated example.
+The goal is a low-dimensional embedding of the cells where the treatment status does not visibly affect the embedding and all residual variance comes from different cell states. @fig-integrated_picture shows an example.
 
 ![UMAP of a successfully integrated dataset.](images/integrated_data_picture.png){#fig-integrated_picture}
 
-There are many methods for single-cell data integration, and @luecken2022 benchmarked several approaches. Here, I will show how to do the integration manually or with `harmony`, before we will compare both methods to `LEMUR`.
+There are many approaches for single-cell data integration (the question is somewhat ill-defined and can be formalized into a mathematical algorithm in many different ways), and @luecken2022 benchmarked several approaches. Here, we show how to do the integration manually or with `harmony`, before we will compare both to `LEMUR`.
 
 ::: {.callout-note collapse="true"}
 ## Question: In this tutorial we will just look at plots to assess integration success. Why is that suboptimal? How can we do better?
 
-A 2D embedding like UMAP or tSNE gives us a first impression if cells from different conditions are mixed, but the results are not quantitative which means we cannot directly compare the outcome.
+A 2D embedding like UMAP or tSNE gives us a first impression if cells from different conditions are mixed, but the results are not quantitative, which means we cannot objectively assess or compare the quality of the result.
 
 One simple metric to measure integration success is to see how mixed the conditions are. For example we can count for each cell how many of the nearest neighbors come from the same condition and how many come from the other conditions. For more information see @luecken2022.
 
 Follow-up challenge: Write a function to calculate the mixing metric.
 
-Follow-up questions: Can you write an integration function, that scores perfectly on the integration metric? Hint: it can be biologically completely useless. What else would you need to measure to protect against such a pathological example.
+Follow-up questions: Can you write an integration function, that scores perfectly on the integration metric? Hint: it can be biologically completely useless. What else would you need to measure to protect against such a pathological solutions?
 
 :::
 
@@ -218,9 +220,9 @@ Follow-up questions: Can you write an integration function, that scores perfectl
 
 ![Schematic picture of data from two conditions. The data from the treated condition is projected onto the subspace spanned by the control condition.](images/Subspace_illustration_both_condition_projection.png){#fig-ctrl-proj width="40%"}
 
-In transcriptomic data analysis, each cell is characterized by its gene expression values. In our case, these are the 500 most variable genes. Accordingly, each cell is a point in a 500-dimensional _gene expression_ space. Principal component analysis (PCA) finds a $P$-dimensional space with minimal distance to each cell. 
+In transcriptomic data analysis, each cell is characterized by its gene expression profile. In our case, we decided to consider the 500 most variable genes. Accordingly, each cell is a point in a 500-dimensional _gene expression space_. Principal component analysis (PCA) finds a $P$-dimensional space ($P\le500$) such that overall, distances between each cell in the full space and the reduced space are minimized. 
 
-To make these concepts more tangible, I created a cartoon shown in Figure @fig-ctrl-proj. The orange blob represents all cells from the control condition in a 3-dimensional gene expression space. The grey rectangle $R$ is a lower-dimensional subspace covering the shape of the orange blob. The shape of the blue blob (i.e., the treated cells) resembles the orange blob but is slightly offset. To integrate both conditions, we can project each point from the blue blob onto the subspace covering the orange blob.
+To make these concepts more tangible, consider the cartoon in Figure @fig-ctrl-proj. The orange blob represents all cells from the control condition in a 3-dimensional gene expression space. The grey rectangle $R$ is a lower-dimensional subspace covering the shape of the orange blob. The shape of the blue blob (i.e., the treated cells) resembles the orange blob but is slightly offset. To integrate both conditions, we can project each point from the blue blob onto the subspace covering the orange blob.
 
 We can implement this procedure in a few lines of R code:
 
@@ -371,13 +373,11 @@ Seurat::DimPlot(seur_obj2, reduction = "umap", group.by = "stim")
 ```
 :::
 
-
-
 # Analysis with LEMUR
 
 Tools like MNN and Harmony take a PCA embedding and remove the effects of the specified covariates. However, there is no way to go back from the integrated embedding to the original gene space. This means that we cannot ask the counterfactual what the expression of a cell from the control condition would have been, had it been treated.
 
-Our tool [LEMUR](https://bioconductor.org/packages/lemur/) achieves this by matching the subspaces of each condition [@ahlmann-eltze2024]. @fig-subspace_matching illustrates the principle. In some sense this is a more sophisticated version of the manual matching that we saw in the previous section. The matching is a single affine transformation in contrast to Harmony's inferred shifts per cluster.
+[LEMUR](https://bioconductor.org/packages/lemur/) achieves such counterfactuals by matching the subspaces of each condition [@ahlmann-eltze2024]. @fig-subspace_matching illustrates the principle. In some sense this is a more sophisticated version of the manual matching that we saw in the previous section. The matching is a single affine transformation in contrast to Harmony's inferred shifts per cluster.
 
 ![Schematic picture of data from two conditions with the respective linear subspace.](images/Subspace_illustration_both_condition_with_arrow.png){#fig-subspace_matching width="40%"}
 
@@ -385,13 +385,14 @@ LEMUR takes as input a `SingleCellExperiment` object, the specification of the e
 ```{r}
 #| label: fit-lemur-model
 #| eval: !expr (! params$skip_execution)
-
-library(lemur)
-
+#| message: false
+library("lemur")
 fit = lemur(sce, design = ~ stim, n_embedding = 30, verbose = FALSE)
 fit = align_by_grouping(fit, fit$colData$cell, verbose = FALSE)
 ```
 
+<!--
+FIXME: these seem premature. can we first look at the results of what we did above before wondering what the results from doing something else would be?
 ::: {.callout-note}
 ## Challenge: How much do the results change if you change the default parameters in LEMUR?
 :::
@@ -408,6 +409,7 @@ fit2 = lemur(sce, design = ~ stim, n_embedding = 30, verbose = FALSE)
 fit2 = align_harmony(fit2, verbose = FALSE)
 ```
 :::
+-->
 
 Making a UMAP plot of LEMUR's embedding shows that it successfully integrated the conditions (@fig-lemur_umap).
 
