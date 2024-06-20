@@ -462,7 +462,7 @@ We can now pick an individual gene (_PLSCR1_) and plot the predicted log fold ch
 #| layout-ncol: 2
 #| fig-cap: 
 #|   - "Expression of _PLSCR1_ in control and stim condition"
-#|   - "LEMUR's prediction of differential expression"
+#|   - "Counterfactual: LEMUR predicts _PLSCR1_ differential expression between control and stimulus for each cell"
 #| eval: !expr (! params$skip_execution)
 as_tibble(colData(sce)) |>
   mutate(umap = lemur_umap) |>
