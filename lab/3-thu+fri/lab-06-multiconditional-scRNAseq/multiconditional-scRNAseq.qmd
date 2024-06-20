@@ -25,20 +25,22 @@ To start, we will load the `tidyverse` and `SingleCellExperiment` packages:
 #| label: load_packages
 #| output: false
 #| eval: !expr (! params$skip_execution)
-library(tidyverse)
-library(SingleCellExperiment)
+library("tidyverse")
+library("SingleCellExperiment")
 set.seed(1)
 ```
+
+The call to `set.seed` to set the initial conditions ("seed") of R's random number generator, is optional. We make it here to ensure that the results are exactly the same for everyone. Some of the methods use stochastic sampling, but the expectation is that even with different random seeds, the results will be essentially, for all practical intents and purposes, the same.
 
 # Example data
 
 We will use a popular dataset by @kang2018 for this tutorial. The dataset measured the effect of interferon-$\beta$ stimulation on blood cells from eight patients. The [`muscData`](https://bioconductor.org/packages/muscData/) package provides an easy way to access the data as a [`SingleCellExperiment`](https://bioconductor.org/books/release/OSCA.intro/the-singlecellexperiment-class.html). 
-In case downloading the data with the `muscData` package fails, you can also directly download the file from <http://oc.embl.de/index.php/s/tpbYcH5P9NfXeM5> and load it into R using `sce <- readRDS("~/Downloads/PATH_TO_THE_FILE")`.
+In case downloading the data with the `muscData` package fails, you can also directly download the file from <http://oc.embl.de/index.php/s/tpbYcH5P9NfXeM5> and load it into R using `sce = readRDS("~/Downloads/PATH_TO_THE_FILE")`.
 
 ```{r}
 #| label: load_kang_data
 #| eval: !expr (! isTRUE(params$skip_execution))
-sce <- muscData::Kang18_8vs8()
+sce = muscData::Kang18_8vs8()
 sce
 ```
 
@@ -58,13 +60,13 @@ We log-transform the data to account for the heteroskedasticity of the counts, p
 ```{r}
 #| label: kang_preprocess
 #| eval: !expr (! params$skip_execution)
-sce <- scater::logNormCounts(sce)
-hvg <- order(MatrixGenerics::rowVars(logcounts(sce)), decreasing = TRUE)
-sce <- sce[hvg[1:500], ]
+sce = scater::logNormCounts(sce)
+hvg = order(MatrixGenerics::rowVars(logcounts(sce)), decreasing = TRUE)
+sce = sce[hvg[1:500], ]
 # _Note_: in case you get an error about `"function 'as_cholmod_sparse' not provided by package 'Matrix'"`, 
 # please reinstall the `irlba` package from source (`install.packages("irlba", type = "source")`)!
-sce <- scater::runPCA(sce, ncomponents = 50)
-sce <- scater::runUMAP(sce, dimred = "PCA")
+sce = scater::runPCA(sce, ncomponents = 50)
+sce = scater::runUMAP(sce, dimred = "PCA")
 ```
 
 ::: {.callout-note collapse="true"}
@@ -75,7 +77,7 @@ The [transformGamPoi](https://bioconductor.org/packages/release/bioc/vignettes/t
 ```{r}
 #| label: sctransform_alternative
 #| eval: !expr (! params$skip_execution)
-assay(sce, "pearson_residuals") <- transformGamPoi::residual_transform(sce, residual = "pearson", on_disk = FALSE)
+assay(sce, "pearson_residuals") = transformGamPoi::residual_transform(sce, residual = "pearson", on_disk = FALSE)
 ```
 :::
 
@@ -95,7 +97,7 @@ The scater package also provides a `runTSNE` function
 ```{r}
 #| label: run_tsne
 #| eval: !expr (! params$skip_execution && ! params$skip_slow_chunks)
-sce <- scater::runTSNE(sce, dimred = "PCA")
+sce = scater::runTSNE(sce, dimred = "PCA")
 ```
 
 On the one hand, tSNE and UMAP are defacto standards for visualizing the cell states in single cell data analysis. On the other hand, they are often criticized for failing to represent global structure and distorting differences in the data (just look at twitter). A number of alternatives have been suggested:
@@ -147,7 +149,7 @@ This dataset already comes with cell type annotations. The cell type labels help
 #| fig-cap: Cell type labels
 #| eval: !expr (! params$skip_execution)
 
-label_pos_df <- as_tibble(colData(sce)) |>
+label_pos_df = as_tibble(colData(sce)) |>
   mutate(umap = reducedDim(sce, "UMAP")) |>
   summarize(umap = matrix(colMedians(umap), nrow = 1), .by = c(stim, cell))
 
@@ -170,14 +172,14 @@ The following code is based on Seurat's [*Guided Clustering Tutorial*](https://s
 #| label: seurat-preprocessing
 #| eval: !expr (! params$skip_execution && ! params$skip_answers)
 # For more information about the conversion see `?as.Seurat.CellDataSet`
-seur_obj <- Seurat::as.Seurat(muscData::Kang18_8vs8(), data = NULL)
-seur_obj <- Seurat::NormalizeData(seur_obj, normalization.method = "LogNormalize", scale.factor = 10000)
-seur_obj <- Seurat::FindVariableFeatures(seur_obj, selection.method = "vst", nfeatures = 500)
+seur_obj = Seurat::as.Seurat(muscData::Kang18_8vs8(), data = NULL)
+seur_obj = Seurat::NormalizeData(seur_obj, normalization.method = "LogNormalize", scale.factor = 10000)
+seur_obj = Seurat::FindVariableFeatures(seur_obj, selection.method = "vst", nfeatures = 500)
 # Subset to highly variable genes for memory efficiency
-seur_obj <- seur_obj[Seurat::VariableFeatures(object = seur_obj),]
-seur_obj <- Seurat::ScaleData(seur_obj)
-seur_obj <- Seurat::RunPCA(seur_obj, verbose = FALSE)
-seur_obj <-Seurat::RunUMAP(seur_obj, dims = 1:10)
+seur_obj = seur_obj[Seurat::VariableFeatures(object = seur_obj),]
+seur_obj = Seurat::ScaleData(seur_obj)
+seur_obj = Seurat::RunPCA(seur_obj, verbose = FALSE)
+seur_obj =Seurat::RunUMAP(seur_obj, dims = 1:10)
 ```
 
 ```{r}
@@ -231,19 +233,19 @@ We can implement this procedure in a few lines of R code:
 #| label: manual-proj
 #| eval: !expr (! params$skip_execution)
 # Each column from the matrix is the coordinate of a cell in the 500-dimensional space
-ctrl_mat <- as.matrix(logcounts(sce)[,sce$stim == "ctrl"])
-stim_mat <- as.matrix(logcounts(sce)[,sce$stim == "stim"])
+ctrl_mat = as.matrix(logcounts(sce)[,sce$stim == "ctrl"])
+stim_mat = as.matrix(logcounts(sce)[,sce$stim == "stim"])
 
-ctrl_centers <- rowMeans(ctrl_mat)
-stim_centers <- rowMeans(stim_mat)
+ctrl_centers = rowMeans(ctrl_mat)
+stim_centers = rowMeans(stim_mat)
 
 # `prcomp` is R's name for PCA and IRLBA is an algorithm to calculate it.
-ctrl_pca <- irlba::prcomp_irlba(t(ctrl_mat - ctrl_centers), n = 20)
+ctrl_pca = irlba::prcomp_irlba(t(ctrl_mat - ctrl_centers), n = 20)
 
 # With a little bit of linear algebra, we project the points onto the subspace of the control cells
-integrated_mat <- matrix(NA, nrow = 20, ncol = ncol(sce))
-integrated_mat[,sce$stim == "ctrl"] <- t(ctrl_pca$rotation) %*% (ctrl_mat - ctrl_centers)
-integrated_mat[,sce$stim == "stim"] <- t(ctrl_pca$rotation) %*% (stim_mat - stim_centers)
+integrated_mat = matrix(NA, nrow = 20, ncol = ncol(sce))
+integrated_mat[,sce$stim == "ctrl"] = t(ctrl_pca$rotation) %*% (ctrl_mat - ctrl_centers)
+integrated_mat[,sce$stim == "stim"] = t(ctrl_pca$rotation) %*% (stim_mat - stim_centers)
 ```
 
 We check that our implementation works, by looking at the UMAP of the integrated data. 
@@ -254,7 +256,7 @@ We check that our implementation works, by looking at the UMAP of the integrated
 #| collapse: true
 #| eval: !expr (! params$skip_execution)
 
-int_mat_umap <- uwot::umap(t(integrated_mat))
+int_mat_umap = uwot::umap(t(integrated_mat))
 
 as_tibble(colData(sce)) |>
   mutate(umap = int_mat_umap) |>
@@ -276,13 +278,13 @@ The projection is orthogonal onto the subspace, which means it matters which con
 ```{r}
 #| label: rev-manual-proj
 #| eval: !expr (! params$skip_execution && ! params$skip_answers)
-stim_pca <- irlba::prcomp_irlba(t(stim_mat - stim_centers), n = 20, center = FALSE)
+stim_pca = irlba::prcomp_irlba(t(stim_mat - stim_centers), n = 20, center = FALSE)
 
-integrated_mat2 <- matrix(NA, nrow = 20, ncol = ncol(sce))
-integrated_mat2[,sce$stim == "ctrl"] <- t(stim_pca$rotation) %*% (ctrl_mat - ctrl_centers)
-integrated_mat2[,sce$stim == "stim"] <- t(stim_pca$rotation) %*% (stim_mat - stim_centers)
+integrated_mat2 = matrix(NA, nrow = 20, ncol = ncol(sce))
+integrated_mat2[,sce$stim == "ctrl"] = t(stim_pca$rotation) %*% (ctrl_mat - ctrl_centers)
+integrated_mat2[,sce$stim == "stim"] = t(stim_pca$rotation) %*% (stim_mat - stim_centers)
 
-int_mat_umap2 <- uwot::umap(t(integrated_mat2))
+int_mat_umap2 = uwot::umap(t(integrated_mat2))
 
 as_tibble(colData(sce)) |>
   mutate(umap = int_mat_umap2) |>
@@ -310,12 +312,12 @@ For arbitrary experimental designs, we can perform the centering with a linear m
 #| label: challenge-complex-manual-adjustment
 #| eval: false
 # A complex experimental design
-lm_fit <- lm(t(logcounts(sce)) ~ condition + batch, data = colData(sce))
+lm_fit = lm(t(logcounts(sce)) ~ condition + batch, data = colData(sce))
 # The `residuals` function returns the coordinates minus the mean at the condition.
-centered_mat <- t(residuals(lm_fit))
+centered_mat = t(residuals(lm_fit))
 # Assuming that `is_reference_condition` contains a selection of the cells
-ref_pca <- irlba::prcomp_irlba(centered_mat[,is_reference_condition], ...)
-int_mat <- t(ref_pca$rotation) %*% centered_mat
+ref_pca = irlba::prcomp_irlba(centered_mat[,is_reference_condition], ...)
+int_mat = t(ref_pca$rotation) %*% centered_mat
 ```
 :::
 
@@ -329,9 +331,9 @@ Harmony is one popular tool for data integration [@korsunsky2019]. Harmony is re
 #| label: harmony_integration
 #| eval: !expr (! params$skip_execution)
 # Attention: You need `packageVersion("harmony") >= "1.0.0"` for this to work.
-harm_mat <- harmony::RunHarmony(reducedDim(sce, "PCA"), colData(sce), 
+harm_mat = harmony::RunHarmony(reducedDim(sce, "PCA"), colData(sce), 
                                  vars_use = c("stim"))
-harm_umap <- uwot::umap(harm_mat)
+harm_umap = uwot::umap(harm_mat)
 
 as_tibble(colData(sce)) |>
   mutate(umap = harm_umap) |>
@@ -356,15 +358,15 @@ Seurat's integration method is based on mutual nearest neighbors (MNN) by @haghv
 #| eval: !expr (! params$skip_execution && ! params$skip_slow_chunks)
 
 # This code only works with Seurat v5!
-seur_obj2 <- Seurat::as.Seurat(muscData::Kang18_8vs8(), data = NULL)
-seur_obj2[["originalexp"]] <- split(seur_obj2[["originalexp"]], f = seur_obj2$stim)
-seur_obj2 <- Seurat::NormalizeData(seur_obj2, normalization.method = "LogNormalize", scale.factor = 10000)
-seur_obj2 <- Seurat::FindVariableFeatures(seur_obj2, selection.method = "vst", nfeatures = 500)
-seur_obj2 <- Seurat::ScaleData(seur_obj2)
-seur_obj2 <- Seurat::RunPCA(seur_obj2, verbose = FALSE)
+seur_obj2 = Seurat::as.Seurat(muscData::Kang18_8vs8(), data = NULL)
+seur_obj2[["originalexp"]] = split(seur_obj2[["originalexp"]], f = seur_obj2$stim)
+seur_obj2 = Seurat::NormalizeData(seur_obj2, normalization.method = "LogNormalize", scale.factor = 10000)
+seur_obj2 = Seurat::FindVariableFeatures(seur_obj2, selection.method = "vst", nfeatures = 500)
+seur_obj2 = Seurat::ScaleData(seur_obj2)
+seur_obj2 = Seurat::RunPCA(seur_obj2, verbose = FALSE)
 
-seur_obj2 <- Seurat::IntegrateLayers(object = seur_obj2, method = Seurat::CCAIntegration, orig.reduction = "pca", new.reduction = "integrated.cca", verbose = FALSE)
-seur_obj2 <- Seurat::RunUMAP(seur_obj2, dims = 1:30, reduction = "integrated.cca")
+seur_obj2 = Seurat::IntegrateLayers(object = seur_obj2, method = Seurat::CCAIntegration, orig.reduction = "pca", new.reduction = "integrated.cca", verbose = FALSE)
+seur_obj2 = Seurat::RunUMAP(seur_obj2, dims = 1:30, reduction = "integrated.cca")
 Seurat::DimPlot(seur_obj2, reduction = "umap", group.by = "stim")
 ```
 :::
@@ -386,8 +388,8 @@ LEMUR takes as input a `SingleCellExperiment` object, the specification of the e
 
 library(lemur)
 
-fit <- lemur(sce, design = ~ stim, n_embedding = 30, verbose = FALSE)
-fit <- align_by_grouping(fit, fit$colData$cell, verbose = FALSE)
+fit = lemur(sce, design = ~ stim, n_embedding = 30, verbose = FALSE)
+fit = align_by_grouping(fit, fit$colData$cell, verbose = FALSE)
 ```
 
 ::: {.callout-note}
@@ -402,8 +404,8 @@ If there are no cell type labels present, LEMUR uses a modified version of Harmo
 ```{r}
 #| label: align-lemur-model
 #| eval: !expr (! params$skip_execution & ! params$skip_answers)
-fit2 <- lemur(sce, design = ~ stim, n_embedding = 30, verbose = FALSE)
-fit2 <- align_harmony(fit2, verbose = FALSE)
+fit2 = lemur(sce, design = ~ stim, n_embedding = 30, verbose = FALSE)
+fit2 = align_harmony(fit2, verbose = FALSE)
 ```
 :::
 
@@ -413,7 +415,7 @@ Making a UMAP plot of LEMUR's embedding shows that it successfully integrated th
 #| label: fig-lemur_umap
 #| fig-cap: "UMAP plot of LEMUR's embedding."
 #| eval: !expr (! params$skip_execution)
-lemur_umap <- uwot::umap(t(fit$embedding))
+lemur_umap = uwot::umap(t(fit$embedding))
 
 as_tibble(colData(sce)) |>
   mutate(umap = lemur_umap) |>
@@ -448,7 +450,7 @@ We call LEMUR's `test_de` function to compare the expression values in the `"sti
 ```{r}
 #| label: lemur-calc-de
 #| eval: !expr (! params$skip_execution)
-fit <- test_de(fit, contrast = cond(stim = "stim") - cond(stim = "ctrl"))
+fit = test_de(fit, contrast = cond(stim = "stim") - cond(stim = "ctrl"))
 ```
 
 We can now pick an individual gene (_PLSCR1_) and plot the predicted log fold change for each cell to show how it varies as a function of the underlying gene expression values (@fig-lemur_plot_de-1).
@@ -490,11 +492,11 @@ This approach has the advantage over the traditional cluster/cell type-based ana
 ```{r}
 #| label: glmGamPoi_de_test
 #| eval: !expr (! params$skip_execution)
-psce <- glmGamPoi::pseudobulk(fit, group_by = vars(cell, ind, stim))
+psce = glmGamPoi::pseudobulk(fit, group_by = vars(cell, ind, stim))
 # Filter out NAs
-psce <- psce[,! is.na(psce$cell)]
-glm_fit <- glmGamPoi::glm_gp(psce, design = ~ stim * cell)
-glm_de <- glmGamPoi::test_de(glm_fit, contrast = cond(stim = "stim", cell = "B cells") - cond(stim = "ctrl", cell = "B cells"))
+psce = psce[,! is.na(psce$cell)]
+glm_fit = glmGamPoi::glm_gp(psce, design = ~ stim * cell)
+glm_de = glmGamPoi::test_de(glm_fit, contrast = cond(stim = "stim", cell = "B cells") - cond(stim = "ctrl", cell = "B cells"))
 glm_de |>
   arrange(pval) |>
   head()
@@ -511,10 +513,10 @@ We use the `pseudobulk` function from `glmGamPoi` to calculate the average expre
 #| eval: !expr (! params$skip_execution)
 
 # You could choose any gene
-gene_oi <- "HERC5"
+gene_oi = "HERC5"
 
-reduced_fit <- glmGamPoi::pseudobulk(fit, group_by = vars(stim, cell))
-lemur_pred_per_cell <- predict(fit, newdata = colData(reduced_fit), embedding = t(reducedDim(reduced_fit, "embedding")))
+reduced_fit = glmGamPoi::pseudobulk(fit, group_by = vars(stim, cell))
+lemur_pred_per_cell = predict(fit, newdata = colData(reduced_fit), embedding = t(reducedDim(reduced_fit, "embedding")))
 
 as_tibble(colData(reduced_fit)) |>
   mutate(obs = logcounts(reduced_fit)[gene_oi,]) |>
@@ -535,7 +537,7 @@ The output is a `data.frame` with one row for each gene. The `neighborhood` colu
 ```{r, paged.print=FALSE}
 #| label: find-neighborhood-lemur
 #| eval: !expr (! params$skip_execution)
-nei <- lemur::find_de_neighborhoods(fit, group_by = vars(ind, stim))
+nei = lemur::find_de_neighborhoods(fit, group_by = vars(ind, stim))
 head(nei)
 ```
 
@@ -552,7 +554,7 @@ slice_min(nei, did_pval, n = 3)
 ```{r, paged.print=FALSE}
 #| label: find-neighborhood-lemur-result-plots2
 #| eval: !expr (! params$skip_execution)
-top_did_gene <- slice_min(nei, did_pval)
+top_did_gene = slice_min(nei, did_pval)
 
 as_tibble(colData(sce), rownames = "cell_name") |>
   mutate(umap = lemur_umap) |>
@@ -570,24 +572,24 @@ To see which cells LEMUR included in the neighborhood for each gene, we will fir
 ```{r}
 #| label: neighborhoods_to_long_data-helper-function
 #| eval: !expr (! params$skip_execution)
-neighborhoods_to_long_data <- function(data, fit = NULL){
-  nei <- data[["neighborhood"]]
-  gene_names <- data[["name"]]
-  cell_names <- if(! is.null(fit)) colnames(fit) else unique(unlist(nei))
-  levels2idx <- seq_along(cell_names)
-  names(levels2idx) <- cell_names
-  res <- list(
+neighborhoods_to_long_data = function(data, fit = NULL){
+  nei = data[["neighborhood"]]
+  gene_names = data[["name"]]
+  cell_names = if(! is.null(fit)) colnames(fit) else unique(unlist(nei))
+  levels2idx = seq_along(cell_names)
+  names(levels2idx) = cell_names
+  res = list(
     rep(gene_names, each = length(cell_names)),
     rep(cell_names, times = length(gene_names)),
     rep(FALSE, length(cell_names) * length(gene_names))
   )
-  offset <- 0
+  offset = 0
   for(n in nei){
-    res[[3]][offset + levels2idx[n]] <- TRUE
-    offset <- offset + length(cell_names)
+    res[[3]][offset + levels2idx[n]] = TRUE
+    offset = offset + length(cell_names)
   }
 
-  names(res) <- c("name", "cell", "inside")
+  names(res) = c("name", "cell", "inside")
   tibble::as_tibble(res)
 }
 ```
@@ -598,7 +600,7 @@ With this function, we can annotate for any gene if a cell is included in LEMUR'
 ```{r, paged.print=FALSE}
 #| label: neighborhood-facetted
 #| eval: !expr (! params$skip_execution)
-cells_inside_df <- neighborhoods_to_long_data(top_did_gene, fit)
+cells_inside_df = neighborhoods_to_long_data(top_did_gene, fit)
 
 as_tibble(colData(sce), rownames = "cell_name") |>
   mutate(umap = lemur_umap) |>
@@ -623,7 +625,7 @@ The plot below illustrates this for the top three DE genes by `pval` which all h
 ```{r, paged.print=FALSE}
 #| label: neighborhood-facetted-top3
 #| eval: !expr (! params$skip_execution)
-cells_inside_df_top3 <- neighborhoods_to_long_data(slice_min(nei, pval, n = 3), fit)
+cells_inside_df_top3 = neighborhoods_to_long_data(slice_min(nei, pval, n = 3), fit)
 
 as_tibble(colData(sce), rownames = "cell_name") |>
   mutate(umap = lemur_umap) |>
