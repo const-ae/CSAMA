@@ -19,7 +19,7 @@ params:
 
 ![Figure 1 from *Analysis of multi-condition single-cell data with latent embedding multivariate regression* by @ahlmann-eltze2024. The goal is to identify which cells change expression in response to an experimental condition for each gene.](images/lemur_figure.png)
 
-To start, we will load the `tidyverse` and `SingleCellExperiment` packages:
+To start, we load the `tidyverse` and `SingleCellExperiment` packages:
 
 ```{r}
 #| label: load_packages
@@ -34,8 +34,8 @@ The call to `set.seed` to set the initial conditions ("seed") of R's random numb
 
 # Example data
 
-We will use a popular dataset by @kang2018 for this tutorial. The dataset measured the effect of interferon-$\beta$ stimulation on blood cells from eight patients. The [`muscData`](https://bioconductor.org/packages/muscData/) package provides an easy way to access the data as a [`SingleCellExperiment`](https://bioconductor.org/books/release/OSCA.intro/the-singlecellexperiment-class.html). 
-In case downloading the data with the `muscData` package fails, you can also directly download the file from <http://oc.embl.de/index.php/s/tpbYcH5P9NfXeM5> and load it into R using `sce = readRDS("~/Downloads/PATH_TO_THE_FILE")`.
+We will use a popular dataset by @kang2018 in this tutorial. The authors measured the effect of interferon-$\beta$ stimulation on blood cells from eight patients. The [`muscData`](https://bioconductor.org/packages/muscData/) package provides an easy way to access the data as a [`SingleCellExperiment`](https://bioconductor.org/books/release/OSCA.intro/the-singlecellexperiment-class.html). 
+In case downloading the data with the `muscData` package fails, you can also directly download the file from <http://oc.embl.de/index.php/s/tpbYcH5P9NfXeM5> and load it into R using `sce = readRDS("PATH_TO_THE_FILE")`.
 
 ```{r}
 #| label: load_kang_data
@@ -48,14 +48,14 @@ sce
 ::: {.callout-note collapse="true"}
 ## Challenge: How many genes and cells are in the data? How do you find the metadata about each cell / gene?
 
-You can find the number of genes and cells when printing the summary of the `sce`. Alternatively, you can use `nrow(sce)`, `ncol(sce)`, or `dim(sce)` to gt these values.
+You can find the number of genes and cells when printing the summary of the `sce`. Alternatively, you can use `nrow(sce)`, `ncol(sce)`, or `dim(sce)` to get these values.
 
-In a `SingleCellExperiment` object, the meta information about each cell using `colData(sce)` and for each gene with `rowData(sce)`. 
+In a `SingleCellExperiment` object, the metadata ("data about data") on the cells are accessed with `colData(sce)`, and those on the genes with `rowData(sce)`. 
 
 Follow-up question: why does the documentation for `colData` (run `?colData` in the R console) talk about `SummarizedExperiment` objects instead of `SingleCellExperiment`?
 :::
 
-We log-transform the data to account for the heteroskedasticity of the counts, perform PCA to reduce the dimensions, and run UMAP for visualization. For the preprocessing, we will use the [`scater`](https://bioconductor.org/packages/scater/) package, which adds a new assay called `"logcounts"` and two `reducedDims(sce)` called `"PCA"` and `"UMAP"` to the `SummarizedExperiment` object. Equivalent preprocessing functions also exist in Seurat or scanpy.
+We logarithm transform the data to account for the heteroskedasticity of the counts (@ahlmann-eltze2023), perform PCA to reduce dimensionsality, and run UMAP for visualization. We use the [`scater`](https://bioconductor.org/packages/scater/) package, which adds a new slot called `"logcounts"` and the two slots `reducedDims(sce)` called `"PCA"` and `"UMAP"` to the `SummarizedExperiment` object. Equivalent preprocessing functions exist in `Seurat` and `scanpy`.
 
 ```{r}
 #| label: kang_preprocess
