@@ -298,7 +298,6 @@ as_tibble(colData(sce)) |>
 ```
 
 For this example, using the `"stim"` condition as the reference leads to a worse integration.
-<!-- FIXME the plot is not rendered -->
 :::
 
 ::: {.callout-warning collapse="true"}
