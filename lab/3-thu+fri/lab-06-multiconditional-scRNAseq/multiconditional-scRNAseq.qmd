@@ -1,5 +1,5 @@
 ---
-title: "Introduction to multi-condition data analysis with LEMUR"
+title: "Multi-condition scRNAseq analysis with LEMUR"
 author: "Constantin Ahlmann-Eltze & Wolfgang Huber"
 date: today
 format: 
@@ -18,6 +18,8 @@ params:
 ---
 
 ![Figure 1 from *Analysis of multi-condition single-cell data with latent embedding multivariate regression* by @ahlmann-eltze2024. The goal is to identify cells that show gene expression changes associated with experimental perturbations or study conditions.](images/lemur_figure.png)
+
+# Setup
 
 To start, we load the `tidyverse` and `SingleCellExperiment` packages:
 
@@ -115,8 +117,7 @@ On the one hand, tSNE and UMAP are de facto standards for visualizing the cell s
 :::
 
 
-
-In this tutorial, we use `ggplot2` to visualize the data. This is often more verbose than calling an existing function (e.g., `scater::plotReducedDim(sce, "UMAP", color_by = "stim")`) but has the advantage that the plots are easier to customize.
+In this tutorial, we use `ggplot2` to visualize the data. This is often more verbose than calling a higher-level, specialized wrapper function (e.g., `scater::plotReducedDim(sce, "UMAP", color_by = "stim")`), on the other hand, it has the advantage that we can more easily customize our plots.
 
 In the below two UMAP plots, the cells separate by treatment status (`stim`), as well as by annotated cell type (`cell`). One goal of this tutorial is to understand how different approaches use these covariates to integrate the data into a shared embedding space or representation.
 
@@ -150,12 +151,12 @@ This dataset already comes with cell type annotations. The cell type labels help
 #| label: fig-kang-umap2
 #| fig-cap: Cell type labels
 #| eval: !expr (! params$skip_execution)
-
+#| warning: false
 label_pos_df = as_tibble(colData(sce)) |>
   mutate(umap = reducedDim(sce, "UMAP")) |>
   summarize(umap = matrix(colMedians(umap), nrow = 1), .by = c(stim, cell))
 
-# Here we use `geom_text_repel` to avoid overlapping annotations
+# Use `geom_text_repel` to avoid overlapping annotations
 as_tibble(colData(sce)) |>
   mutate(umap = reducedDim(sce, "UMAP")) |>
   ggplot(aes(x = umap[,1], y = umap[,2])) +
@@ -164,9 +165,8 @@ as_tibble(colData(sce)) |>
     coord_fixed()
 ```
 
-
 ::: {.callout-note collapse="true"}
-## Challenge: Do the preprocessing with Seurat (click to see results)
+## Alternative path: Do the preprocessing with Seurat (click to see results)
 
 The following code is based on Seurat's [*Guided Clustering Tutorial*](https://satijalab.org/seurat/archive/v3.0/pbmc3k_tutorial.html).
 
@@ -194,13 +194,13 @@ Seurat::DimPlot(seur_obj, reduction = "umap", group.by = "stim")
 
 # Data integration
 
-@fig-kang-umap shows that the cell embedding locations separate by the treatment status. For many downstream analyses, it would be good to know how the cells from the stimulated condition are related to the cells from the control condition. For example for cell type assignment, we might want to annotate both conditions together, irrespective of treatment. This aspiration is called **integration**.
+@fig-kang-umap shows that the cell embedding locations separate by treatment status. For many analyses, we would like to overlay the cells from the stimulated condition with the cells from the control condition. For example, for cell type assignment, we might want to annotate both conditions together, irrespective of treatment. This aspiration is called **integration**.
 
-The goal is a low-dimensional embedding of the cells where the treatment status does not visibly affect the embedding and all residual variance comes from different cell states. @fig-integrated_picture shows an example.
+The goal is a mathematical representation (e.g., a low-dimensional embedding) of the cells where the treatment status does not visibly affect the positions overall, and all residual variance comes from different cell states. @fig-integrated_picture shows an example.
 
 ![UMAP of a successfully integrated dataset.](images/integrated_data_picture.png){#fig-integrated_picture}
 
-There are many approaches for single-cell data integration (the question is somewhat ill-defined and can be formalized into a mathematical algorithm in many different ways), and @luecken2022 benchmarked several approaches. Here, we show how to do the integration manually or with `harmony`, before we will compare both to `LEMUR`.
+There are many approaches for single-cell data integration (the question is somewhat ill-defined and can be formalized into a mathematical algorithm in many different ways). @luecken2022 benchmarked several approaches. Here, we show how to do the integration manually, or with `harmony`. Later we will compare both to `LEMUR`.
 
 ::: {.callout-note collapse="true"}
 ## Question: In this tutorial we will just look at plots to assess integration success. Why is that suboptimal? How can we do better?
@@ -220,9 +220,9 @@ Follow-up questions: Can you write an integration function, that scores perfectl
 
 ![Schematic picture of data from two conditions. The data from the treated condition is projected onto the subspace spanned by the control condition.](images/Subspace_illustration_both_condition_projection.png){#fig-ctrl-proj width="40%"}
 
-In transcriptomic data analysis, each cell is characterized by its gene expression profile. In our case, we decided to consider the 500 most variable genes. Accordingly, each cell is a point in a 500-dimensional _gene expression space_. Principal component analysis (PCA) finds a $P$-dimensional space ($P\le500$) such that overall, distances between each cell in the full space and the reduced space are minimized. 
+In transcriptomic data analysis, each cell is characterized by its gene expression profile. In our case, we decided to consider the 500 most variable genes. Accordingly, each cell is a point in a 500-dimensional _gene expression space_. Principal component analysis (PCA) finds a $P$-dimensional space ($P\le500$) such that overall, distances between each cell in the original space and the reduced space are minimized. 
 
-To make these concepts more tangible, consider the cartoon in Figure @fig-ctrl-proj. The orange blob represents all cells from the control condition in a 3-dimensional gene expression space. The grey rectangle $R$ is a lower-dimensional subspace covering the shape of the orange blob. The shape of the blue blob (i.e., the treated cells) resembles the orange blob but is slightly offset. To integrate both conditions, we can project each point from the blue blob onto the subspace covering the orange blob.
+To make these concepts more tangible, consider the cartoon in @fig-ctrl-proj. The orange blob represents all cells from the control condition in a 3-dimensional gene expression space. The grey planar rectangle $R$ is a lower-dimensional subspace covering the shape of the orange blob. The shape of the blue blob (i.e., the treated cells) resembles the orange blob but is slightly offset, in a different planar rectangle. To integrate both conditions, we can project the two planes onto each other, so that each point from the blue blob is mapped into the orange subspace.
 
 We can implement this procedure in a few lines of R code:
 
@@ -268,10 +268,10 @@ as_tibble(colData(sce)) |>
     coord_fixed()
 ```
 
-The overlap is not perfect, but better than in @fig-kang-umap!
+The overlap is not perfect, but better than in @fig-kang-umap.
 
 ::: {.callout-note collapse="true"}
-## Challenge: What happens if you project on the `"stim"` condition?
+## Challenge: What happens if you project on the `"stim"` subspace instead?
 
 ![Schematic picture of data from two conditions using the stimulated condition as reference.](images/Subspace_illustration_both_condition_projection2.png){width="40%"}
 
@@ -297,6 +297,7 @@ as_tibble(colData(sce)) |>
 ```
 
 For this example, using the `"stim"` condition as the reference leads to a worse integration.
+<!-- FIXME the plot is not rendered -->
 :::
 
 ::: {.callout-warning collapse="true"}
