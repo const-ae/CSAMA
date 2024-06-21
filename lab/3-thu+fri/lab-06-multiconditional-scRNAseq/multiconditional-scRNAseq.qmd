@@ -17,7 +17,7 @@ params:
   skip_answers: true
 ---
 
-![Figure 1 from *Analysis of multi-condition single-cell data with latent embedding multivariate regression* by @ahlmann-eltze2024. The goal is to identify which cells change expression in response to an experimental condition for each gene.](images/lemur_figure.png)
+![Figure 1 from *Analysis of multi-condition single-cell data with latent embedding multivariate regression* by @ahlmann-eltze2024. The goal is to identify cells that show gene expression changes associated with experimental perturbations or study conditions.](images/lemur_figure.png)
 
 To start, we load the `tidyverse` and `SingleCellExperiment` packages:
 
