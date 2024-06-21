@@ -14,7 +14,8 @@ bibliography: references.bib
 params:
   skip_execution: false
   skip_slow_chunks: true
-  skip_answers: true
+  skip_answers: false
+  skip_seurat: true
 ---
 
 ![Figure 1 from *Analysis of multi-condition single-cell data with latent embedding multivariate regression* by @ahlmann-eltze2024. The goal is to identify cells that show gene expression changes associated with experimental perturbations or study conditions.](images/lemur_figure.png)
@@ -172,7 +173,7 @@ The following code is based on Seurat's [*Guided Clustering Tutorial*](https://s
 
 ```{r}
 #| label: seurat-preprocessing
-#| eval: !expr (! params$skip_execution && ! params$skip_answers)
+#| eval: !expr (! params$skip_execution && ! params$skip_answers && ! params$skip_seurat)
 # For more information about the conversion see `?as.Seurat.CellDataSet`
 seur_obj = Seurat::as.Seurat(muscData::Kang18_8vs8(), data = NULL)
 seur_obj = Seurat::NormalizeData(seur_obj, normalization.method = "LogNormalize", scale.factor = 10000)
@@ -187,7 +188,7 @@ seur_obj = Seurat::RunUMAP(seur_obj, dims = 1:10)
 ```{r}
 #| label: fig-seurat-plot
 #| fig-cap: "UMAP plot after preprocessing with Seurat"
-#| eval: !expr (! params$skip_execution && !params$skip_answers)
+#| eval: !expr (! params$skip_execution && !params$skip_answers  && ! params$skip_seurat)
 Seurat::DimPlot(seur_obj, reduction = "umap", group.by = "stim")
 ```
 :::
