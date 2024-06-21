@@ -678,11 +678,11 @@ as_tibble(colData(sce), rownames = "cell_name") |>
 
 LEMUR can handle arbitrary design matrices as input, which means that it can also handle more complicated experiments than the simple treatment / control comparison shown here. Just as with limma, edgeR or DESeq2, you can model
 
-- multiple covariates, e.g., a treatment of treatment as well as known confounders (experiment batch, sex, age) or blocking variables,
+- multiple covariates, e.g., the treatment of interest as well as known confounders (experiment batch, sex, age) or blocking variables,
 - interactions, e.g., drug treatment in wild type and mutant,
-- continuous covariates, e.g., time courses, whose effects can also be models using smooth non-linear functions (spline regression). 
+- continuous covariates, e.g., time courses, whose effects can also be modeled using smooth non-linear functions (spline regression). 
 
-For more details see @ahlmann-eltze2024. For any questions, technical/practical or conceptual, please post to the [Bioconductor forum](https://support.bioconductor.org/) using the `lemur` tag and following the [posting guide]( https://bioconductor.org/help/support/posting-guide/).
+For more details, see @ahlmann-eltze2024. For any questions, whether technical/practical or conceptual, please post to the [Bioconductor forum](https://support.bioconductor.org/) using the `lemur` tag and follow the [posting guide]( https://bioconductor.org/help/support/posting-guide/).
 
 
 # Session Info
