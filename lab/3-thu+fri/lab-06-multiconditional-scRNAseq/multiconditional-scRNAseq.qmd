@@ -38,7 +38,7 @@ library("SingleCellExperiment")
 set.seed(1)
 ```
 
-The call to `set.seed` to set the initial conditions ("seed") of R's random number generator, is optional. We make it here to ensure that the results are exactly the same for everyone. Some of the methods use stochastic sampling, but the expectation is that even with different random seeds, the results will be essentially, for all practical intents and purposes, the same.
+The call to `set.seed`, to set the initial conditions ("seed") of R's random number generator, is optional. We make it here to ensure that the results are exactly the same for everyone. Some of the methods here use stochastic sampling, but the expectation is that even with different random seeds, the results will be essentially, for all practical intents and purposes, the same. You can verify this by omiting the call to `set.seed` or calling with a different argument.
 
 # Example data
 
