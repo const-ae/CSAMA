@@ -39,7 +39,7 @@ library("SingleCellExperiment")
 set.seed(1)
 ```
 
-The call to `set.seed` to set the initial conditions ("seed") of R's random number generator, is optional. We make it here to ensure that the results are exactly the same for everyone. Some of the methods use stochastic sampling, but the expectation is that even with different random seeds, the results will be essentially, for all practical intents and purposes, the same.
+The call to `set.seed`, to set the initial conditions ("seed") of R's random number generator, is optional. We make it here to ensure that the results are exactly the same for everyone. Some of the methods here use stochastic sampling, but the expectation is that even with different random seeds, the results will be essentially, for all practical intents and purposes, the same. You can verify this by omiting the call to `set.seed` or calling with a different argument.
 
 # Example data
 
@@ -333,6 +333,8 @@ Harmony is one popular tool for data integration [@korsunsky2019]. Harmony is re
 ```{r}
 #| label: harmony_integration
 #| eval: !expr (! params$skip_execution)
+#| message: false
+packageVersion("harmony")
 # Attention: You need `packageVersion("harmony") >= "1.0.0"` for this to work.
 harm_mat = harmony::RunHarmony(reducedDim(sce, "PCA"), colData(sce), 
                                  vars_use = c("stim"))
@@ -674,8 +676,13 @@ as_tibble(colData(sce), rownames = "cell_name") |>
 
 # Outlook
 
-LEMUR can handle arbitrary design matrices as input which means that it can also handle much more complicated experiments than the treatment / control shown here. You can use LEMUR to adjust for known confounders in an experiment (such as experimental batch, sex, age). LEMUR can also be used to analyze time course experiments and supports spline regression to find non-linear expression trends. For more details see @ahlmann-eltze2024. If you have any questions, feel free to reach out to the authors (Constantin Ahlmann-Eltze and Wolfgang Huber) or post to the [Bioconductor forum](https://support.bioconductor.org/) using the `lemur` tag.
+LEMUR can handle arbitrary design matrices as input, which means that it can also handle more complicated experiments than the simple treatment / control comparison shown here. Just as with limma, edgeR or DESeq2, you can model
 
+- multiple covariates, e.g., the treatment of interest as well as known confounders (experiment batch, sex, age) or blocking variables,
+- interactions, e.g., drug treatment in wild type and mutant,
+- continuous covariates, e.g., time courses, whose effects can also be modeled using smooth non-linear functions (spline regression). 
+
+For more details, see @ahlmann-eltze2024. For any questions, whether technical/practical or conceptual, please post to the [Bioconductor forum](https://support.bioconductor.org/) using the `lemur` tag and follow the [posting guide]( https://bioconductor.org/help/support/posting-guide/).
 
 
 # Session Info
