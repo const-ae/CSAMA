@@ -632,6 +632,21 @@ single-cell data). By calling the `iSEE()` function with the object as the first
 argument, an interactive application will be opened, in which all observed
 values as well as metadata columns (`rowData` and `colData`) can be explored.
 
+Recall that we added the result columns from *DESeq2* to the 
+`rowData()` of the *DESeqDataSet* object. Here, we instruct `r Biocpkg("iSEEu")`
+(a companion package to *iSEE*, among other things providing 
+panels for volcano plots and MA plots) that any column including 
+`pvalue` in the name contains p-values, and similarly for log-fold changes and 
+average abundances. These columns will be available for use in volcano plots 
+and MA plots within the *iSEE* application. 
+
+_Note_: A newer addition to the *iSEE* family - `r Biocpkg("iSEEde")` - 
+provides another, perhaps more streamlined way of including differential 
+expression results into *SummarizedExperiment* objects for use with *iSEE*. 
+At the moment, both *iSEEu* and *iSEEde* define panels for MA plots and 
+volcano plots - take care when loading the packages to make sure that you are 
+using the intended ones!
+
 ```{r isee, warning = FALSE, message = FALSE}
 library(iSEE)
 library(iSEEu)
@@ -640,7 +655,9 @@ dds <- iSEEu::registerLogFCPatterns(dds, "log2FoldChange")
 dds <- iSEEu::registerPValuePatterns(dds, "pvalue")
 app <- iSEE(dds, initial = list(MAPlot(), VolcanoPlot(), 
                                 RowDataTable(), FeatureAssayPlot()))
-## shiny::runApp(app)
+if (interactive()) {
+    shiny::runApp(app)
+}
 ```
 
 ## Exporting results to CSV file
