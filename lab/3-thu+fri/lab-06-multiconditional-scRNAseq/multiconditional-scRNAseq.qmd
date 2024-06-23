@@ -380,31 +380,32 @@ Seurat::DimPlot(seur_obj2, reduction = "umap", group.by = "stim")
 
 ![LEMUR workflow](images/lemur_workflow.png){#fig-lemur-workflow width="100%"}
 
-LEMUR is a tool to analyze multi-condition single-cell data. The typical analysis workflow with LEMUR goes through four steps (@fig-lemur-workflow):
+LEMUR is a tool to analyze multi-condition single-cell data. A typical analysis workflow with LEMUR goes through four steps (@fig-lemur-workflow):
 
 1. Covariate-adjusted dimensionality reduction.
 2. Prediction of the differential expression for each cell per gene.
 3. Identification of neighborhoods of cells with similar differential expression patterns.
 4. Pseudobulked differential expression testing per neighborhood.
 
-The functions in the `lemur` package mirror these steps:
+These are implemented by the following code.
 
 ```{r}
 #| label: lemur-workflow
 #| eval: false
 #| message: false
-# The following illustrates LEMUR's workflow
-library(lemur)
+library("lemur")
 # Step 1
 fit = lemur(sce, design = ~ stim, n_embedding = 30)
 fit = align_by_grouping(fit, fit$colData$cell)
+
 # Step 2
 fit = test_de(fit, contrast = cond(stim = "stim") - cond(stim = "ctrl"))
-# Step 3 and 4
-nei = lemur::find_de_neighborhoods(fit, group_by = vars(ind, stim))
+
+# Steps 3 and 4
+nei = find_de_neighborhoods(fit, group_by = vars(ind, stim))
 ```
 
-In the next sections we will discuss all of these steps in more detail.
+In the next sections we discuss these steps in more detail.
 
 ## LEMUR Integration
 
