@@ -407,7 +407,7 @@ nei = find_de_neighborhoods(fit, group_by = vars(ind, stim))
 
 In the next sections we discuss these steps in more detail.
 
-## LEMUR Integration
+## LEMUR Integration (Step 1)
 
 Tools like MNN and Harmony take a PCA embedding and remove the effects of the specified covariates. However, there is no way to go back from the integrated embedding to the original gene space. This means that we cannot ask the counterfactual what the expression of a cell from the control condition would have been, had it been treated.
 
@@ -471,7 +471,7 @@ fit2 = align_harmony(fit2, verbose = FALSE)
 ```
 :::
 
-# Differential expression analysis
+## Differential expression analysis (Step 2)
 
 The advantage of LEMUR's integration is that we can predict what a cell's expression from the control condition would have been, had it been stimulated and vice versa. Contrasting those predictions tells us how much the gene expression changes for that cell in any gene.
 
@@ -558,6 +558,8 @@ as_tibble(colData(reduced_fit)) |>
     labs(title = "LEMUR's predictions averaged per cell type and condition")
 ```
 :::
+
+## Neighborhood identification (Step 3) and differential expression tests (Step 4)
 
 To help identify the most interesting changes, LEMUR can aggregate the results of each gene and identify the neighborhood of cells with the most prominent gene expression. To conduct a statistically valid differential expression test, LEMUR pseudobulks the counts for each replicate (here this is the patient).
 
